@@ -1,30 +1,18 @@
 package com.shubham.rctransmitter.presentation.home
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,7 +24,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import kotlin.math.sqrt
+import kotlin.math.roundToInt
 
 @Composable
 fun HomeScreen(
@@ -44,8 +32,10 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val isReady by viewModel.isReady.collectAsState()
+
     val leftStickX by viewModel.leftStickX.collectAsState()
     val leftStickY by viewModel.leftStickY.collectAsState()
+
     val rightStickX by viewModel.rightStickX.collectAsState()
     val rightStickY by viewModel.rightStickY.collectAsState()
 
@@ -55,17 +45,19 @@ fun HomeScreen(
             .background(Color(0xFF1a1f2e))
     ) {
 
-
         Row(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(32.dp, 8.dp, 32.dp, 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+
+            // LEFT JOYSTICK
             RotaryControl(
                 modifier = Modifier.weight(1f),
                 stickX = leftStickX,
                 stickY = leftStickY,
+                isLeftThrottle = true,
                 onPositionChange = { x, y ->
                     viewModel.updateLeftStick(x, y)
                 }
@@ -81,8 +73,11 @@ fun HomeScreen(
                 Box(
                     modifier = Modifier
                         .size(60.dp)
-                        .clip(CircleShape)
-                        .background(if (isReady) Color(0xFFF44336) else Color(0xFF4CAF50))
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(
+                            if (isReady) Color(0xFFF44336)
+                            else Color(0xFF4CAF50)
+                        )
                         .clickable { viewModel.toggleReady() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -90,18 +85,14 @@ fun HomeScreen(
                         text = if (isReady) "STOP" else "READY",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black,
-                        maxLines = 1
+                        color = Color.Black
                     )
                 }
-                IconButton(
-                    onClick = onSettingsClick,
-                    modifier = Modifier
-                        .padding(0.dp)
-                ) {
+
+                IconButton(onClick = onSettingsClick) {
                     Icon(
                         Icons.Outlined.Settings,
-                        contentDescription = "Settings",
+                        contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(28.dp)
                     )
@@ -110,10 +101,12 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.weight(1f))
             }
 
+            // RIGHT JOYSTICK
             RotaryControl(
                 modifier = Modifier.weight(1f),
                 stickX = rightStickX,
                 stickY = rightStickY,
+                isLeftThrottle = false,
                 onPositionChange = { x, y ->
                     viewModel.updateRightStick(x, y)
                 }
@@ -122,12 +115,12 @@ fun HomeScreen(
     }
 }
 
-
 @Composable
 fun RotaryControl(
     modifier: Modifier = Modifier,
     stickX: Float = 0f,
     stickY: Float = 0f,
+    isLeftThrottle: Boolean = false,
     onPositionChange: (Float, Float) -> Unit
 ) {
     val controlSize = 200.dp
@@ -136,32 +129,75 @@ fun RotaryControl(
 
     Box(
         modifier = modifier
-            .aspectRatio(1f)          // keeps perfect square
-            .size(controlSize)       // fixed size
-            .clip(CircleShape)
+            .aspectRatio(1f)
+            .size(controlSize)
+            .clip(RoundedCornerShape(20.dp))
             .background(Color(0xFF2d3142))
             .pointerInput(Unit) {
                 detectDragGestures(
                     onDragStart = { offset ->
-                        updateJoystick(offset, size, onPositionChange)
+                        updateJoystick(
+                            touch = offset,
+                            size = size,
+                            isLeftThrottle = isLeftThrottle,
+                            onPositionChange = onPositionChange
+                        )
                     },
                     onDrag = { change, _ ->
                         change.consume()
-                        updateJoystick(change.position, size, onPositionChange)
+                        updateJoystick(
+                            touch = change.position,
+                            size = size,
+                            isLeftThrottle = isLeftThrottle,
+                            onPositionChange = onPositionChange
+                        )
                     },
-                    onDragEnd = { onPositionChange(0f, 0f) },
-                    onDragCancel = { onPositionChange(0f, 0f) }
+                    onDragEnd = {
+                        if (isLeftThrottle) {
+                            onPositionChange(0f, stickY)
+                        } else {
+                            onPositionChange(0f, 0f)
+                        }
+                    },
+                    onDragCancel = {
+                        if (isLeftThrottle) {
+                            onPositionChange(0f, stickY)
+                        } else {
+                            onPositionChange(0f, 0f)
+                        }
+                    }
                 )
             },
         contentAlignment = Alignment.Center
     ) {
 
+        // OUTER BORDER (Square)
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .border(3.dp, Color(0xFF4d5562), CircleShape)
+                .border(
+                    3.dp,
+                    Color(0xFF4d5562),
+                    RoundedCornerShape(20.dp)
+                )
         )
 
+        // CENTER CROSS LINES
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(2.dp)
+                .background(Color(0xFF4d5562))
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(2.dp)
+                .background(Color(0xFF4d5562))
+        )
+
+        // KNOB
         Box(
             modifier = Modifier
                 .size(knobSize)
@@ -169,7 +205,7 @@ fun RotaryControl(
                     x = (stickX * maxDistance).dp,
                     y = (stickY * maxDistance).dp
                 )
-                .background(Color.White, CircleShape)
+                .background(Color.White, RoundedCornerShape(14.dp))
         )
     }
 }
@@ -177,6 +213,7 @@ fun RotaryControl(
 private fun updateJoystick(
     touch: Offset,
     size: IntSize,
+    isLeftThrottle: Boolean,
     onPositionChange: (Float, Float) -> Unit
 ) {
     val minSize = minOf(size.width, size.height).toFloat()
@@ -188,16 +225,31 @@ private fun updateJoystick(
     var dx = touch.x - centerX
     var dy = touch.y - centerY
 
-    val distance = sqrt(dx * dx + dy * dy)
+    // SQUARE RANGE (instead of circular)
+    dx = dx.coerceIn(-maxDistance, maxDistance)
+    dy = dy.coerceIn(-maxDistance, maxDistance)
 
-    if (distance > maxDistance) {
-        val scale = maxDistance / distance
-        dx *= scale
-        dy *= scale
-    }
-
-    val normalizedX = dx / maxDistance
-    val normalizedY = dy / maxDistance
+    val normalizedX = (dx / maxDistance).coerceIn(-1f, 1f)
+    val normalizedY = (dy / maxDistance).coerceIn(-1f, 1f)
 
     onPositionChange(normalizedX, normalizedY)
+
+    val xPercent = (normalizedX * 100).roundToInt()
+
+    if (isLeftThrottle) {
+        val throttlePercent =
+            (((1f - normalizedY) / 2f) * 100f).roundToInt()
+
+        Log.d(
+            "JOYSTICK",
+            "LEFT -> Horizontal=$xPercent%, Vertical=$throttlePercent%"
+        )
+    } else {
+        val yPercent = (-normalizedY * 100).roundToInt()
+
+        Log.d(
+            "JOYSTICK",
+            "RIGHT -> Horizontal=$xPercent%, Vertical=$yPercent%"
+        )
+    }
 }
