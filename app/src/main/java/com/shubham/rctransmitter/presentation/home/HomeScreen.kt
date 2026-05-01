@@ -121,7 +121,7 @@ fun RotaryControl(
     stickX: Float = 0f,
     stickY: Float = 0f,
     isLeftThrottle: Boolean = false,
-    onPositionChange: (Float, Float) -> Unit
+    onPositionChange: (Float?, Float?) -> Unit
 ) {
     val controlSize = 200.dp
     val knobSize = 50.dp
@@ -154,14 +154,14 @@ fun RotaryControl(
                     },
                     onDragEnd = {
                         if (isLeftThrottle) {
-                            onPositionChange(0f, stickY)
+                            onPositionChange(0f, null)
                         } else {
                             onPositionChange(0f, 0f)
                         }
                     },
                     onDragCancel = {
                         if (isLeftThrottle) {
-                            onPositionChange(0f, stickY)
+                            onPositionChange(0f, null)
                         } else {
                             onPositionChange(0f, 0f)
                         }

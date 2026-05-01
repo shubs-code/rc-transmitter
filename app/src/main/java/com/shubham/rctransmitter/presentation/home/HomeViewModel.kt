@@ -26,7 +26,7 @@ class HomeViewModel @Inject constructor(
     private val _leftStickX = MutableStateFlow(0f)
     val leftStickX: StateFlow<Float> = _leftStickX.asStateFlow()
 
-    private val _leftStickY = MutableStateFlow(0f)
+    private val _leftStickY = MutableStateFlow(1f)
     val leftStickY: StateFlow<Float> = _leftStickY.asStateFlow()
 
     private val _rightStickX = MutableStateFlow(0f)
@@ -60,17 +60,19 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun updateLeftStick(x: Float, y: Float) {
-        _leftStickX.value = x
-        _leftStickY.value = y
+    fun updateLeftStick(x: Float?, y: Float?) {
+        x?.let { _leftStickX.value = it }
+        y?.let { _leftStickY.value = it }
+
         viewModelScope.launch {
             udpController.sendCommand("LEFT:$x,$y")
         }
     }
 
-    fun updateRightStick(x: Float, y: Float) {
-        _rightStickX.value = x
-        _rightStickY.value = y
+    fun updateRightStick(x: Float?, y: Float?) {
+        x?.let { _rightStickX.value = it }
+        y?.let { _rightStickY.value = it }
+
         viewModelScope.launch {
             udpController.sendCommand("RIGHT:$x,$y")
         }
