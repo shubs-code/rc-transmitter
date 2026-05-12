@@ -48,6 +48,7 @@ fun HomeScreen(
         Row(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(WindowInsets.navigationBars.asPaddingValues())
                 .padding(32.dp, 8.dp, 32.dp, 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

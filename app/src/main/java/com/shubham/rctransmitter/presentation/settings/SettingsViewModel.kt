@@ -27,10 +27,17 @@ class SettingsViewModel @Inject constructor(
         initialValue = "5000"
     )
 
-    fun saveSettings(ip: String, port: String) {
+    val commMode: StateFlow<String> = settingsManager.commModeFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = "UDP"
+    )
+
+    fun saveSettings(ip: String, port: String, mode: String) {
         viewModelScope.launch {
             settingsManager.setUdpIp(ip)
             settingsManager.setUdpPort(port)
+            settingsManager.setCommMode(mode)
         }
     }
 }

@@ -22,8 +22,10 @@ class SettingsManager @Inject constructor(
     companion object {
         private val UDP_IP_KEY = stringPreferencesKey("udp_ip")
         private val UDP_PORT_KEY = stringPreferencesKey("udp_port")
+        private val COMM_MODE_KEY = stringPreferencesKey("comm_mode")
         private const val DEFAULT_IP = "192.168.1.100"
         private const val DEFAULT_PORT = "5000"
+        private const val DEFAULT_MODE = "UDP"
     }
 
     val udpIpFlow: Flow<String> = context.dataStore.data.map { preferences ->
@@ -32,6 +34,10 @@ class SettingsManager @Inject constructor(
 
     val udpPortFlow: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[UDP_PORT_KEY] ?: DEFAULT_PORT
+    }
+
+    val commModeFlow: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[COMM_MODE_KEY] ?: DEFAULT_MODE
     }
 
     suspend fun setUdpIp(ip: String) {
@@ -46,6 +52,12 @@ class SettingsManager @Inject constructor(
         }
     }
 
+    suspend fun setCommMode(mode: String) {
+        context.dataStore.edit { preferences ->
+            preferences[COMM_MODE_KEY] = mode
+        }
+    }
+
     suspend fun getUdpIp(): String {
         return context.dataStore.data.map { preferences ->
             preferences[UDP_IP_KEY] ?: DEFAULT_IP
@@ -55,6 +67,12 @@ class SettingsManager @Inject constructor(
     suspend fun getUdpPort(): String {
         return context.dataStore.data.map { preferences ->
             preferences[UDP_PORT_KEY] ?: DEFAULT_PORT
+        }.first()
+    }
+
+    suspend fun getCommMode(): String {
+        return context.dataStore.data.map { preferences ->
+            preferences[COMM_MODE_KEY] ?: DEFAULT_MODE
         }.first()
     }
 }

@@ -2,6 +2,7 @@ package com.shubham.rctransmitter.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.shubham.rctransmitter.data.SerialPortDataSource
 import com.shubham.rctransmitter.data.SettingsManager
 import com.shubham.rctransmitter.domain.UDPController
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val udpController: UDPController,
+    private val serialPortDataSource: SerialPortDataSource,
     private val settingsManager: SettingsManager
 ) : ViewModel() {
 
@@ -43,11 +45,16 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 settingsManager.udpIpFlow,
-                settingsManager.udpPortFlow
-            ) { ip, port ->
-                Pair(ip, port)
-            }.collect { (ip, port) ->
-                udpController.setTarget(ip, port.toIntOrNull() ?: 5000)
+                settingsManager.udpPortFlow,
+                settingsManager.commModeFlow
+            ) { ip, port, mode ->
+                Triple(ip, port, mode)
+            }.collect { (ip, port, mode) ->
+                if (mode == "UDP") {
+                    udpController.setTarget(ip, port.toIntOrNull() ?: 5000)
+                } else {
+                    serialPortDataSource.connectToUSB()
+                }
             }
         }
     }
@@ -56,7 +63,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _isReady.value = !_isReady.value
             val command = if (_isReady.value) "START" else "STOP"
-            udpController.sendCommand(command)
+            sendCommand(command)
         }
     }
 
@@ -65,7 +72,7 @@ class HomeViewModel @Inject constructor(
         y?.let { _leftStickY.value = it }
 
         viewModelScope.launch {
-            udpController.sendCommand("LEFT:$x,$y")
+            sendCommand("LEFT:${_leftStickX.value},${_leftStickY.value}")
         }
     }
 
@@ -74,7 +81,22 @@ class HomeViewModel @Inject constructor(
         y?.let { _rightStickY.value = it }
 
         viewModelScope.launch {
-            udpController.sendCommand("RIGHT:$x,$y")
+            sendCommand("RIGHT:$x,$y")
         }
     }
+
+    private suspend fun sendCommand(command: String) {
+        val mode = settingsManager.getCommMode()
+        if (mode == "UDP") {
+            udpController.sendCommand(command)
+        } else {
+            serialPortDataSource.sendData(command)
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        serialPortDataSource.disconnect()
+    }
+
 }

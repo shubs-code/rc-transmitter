@@ -14,23 +14,27 @@ import javax.inject.Singleton
 class UDPController @Inject constructor() {
 
     private var socket: DatagramSocket? = null
+    private var address: InetAddress? = null
     private var currentIp: String = ""
     private var currentPort: Int = 5000
 
-    fun setTarget(ip: String, port: Int) {
+    suspend fun setTarget(ip: String, port: Int) {
         currentIp = ip
         currentPort = port
-    }
 
+        address = withContext(Dispatchers.IO) {
+            InetAddress.getByName(ip)
+        }
+        if (socket == null || socket?.isClosed == true) {
+            socket = DatagramSocket()
+        }
+    }
     suspend fun sendCommand(command: String) {
         withContext(Dispatchers.IO) {
             try {
-                val socket = DatagramSocket()
-                val address = InetAddress.getByName(currentIp)
                 val data = command.toByteArray()
                 val packet = DatagramPacket(data, data.size, address, currentPort)
-                socket.send(packet)
-                socket.close()
+                socket?.send(packet)
                 Log.d("UDPController", "Sent: $command to $currentIp:$currentPort")
             } catch (e: Exception) {
                 Log.e("UDPController", "Error sending UDP: ${e.message}")

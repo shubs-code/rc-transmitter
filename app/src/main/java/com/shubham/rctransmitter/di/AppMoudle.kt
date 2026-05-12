@@ -1,6 +1,7 @@
 package com.shubham.rctransmitter.di
 
 import android.content.Context
+import com.shubham.rctransmitter.data.SerialPortDataSource
 import com.shubham.rctransmitter.data.SettingsManager
 import dagger.Module
 import dagger.Provides
@@ -19,5 +20,13 @@ object AppModule {
         @ApplicationContext context: Context
     ): SettingsManager {
         return SettingsManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSerialPortDataSource(
+        @ApplicationContext context: Context
+    ): SerialPortDataSource {
+        return SerialPortDataSource(context)
     }
 }
