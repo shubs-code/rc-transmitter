@@ -6,12 +6,14 @@ import com.shubham.rctransmitter.data.SerialPortDataSource
 import com.shubham.rctransmitter.data.SettingsManager
 import com.shubham.rctransmitter.domain.UDPController
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,6 +23,10 @@ class HomeViewModel @Inject constructor(
     private val serialPortDataSource: SerialPortDataSource,
     private val settingsManager: SettingsManager
 ) : ViewModel() {
+
+    companion object {
+        private const val SEND_INTERVAL_MS = 100L
+    }
 
     private val _isReady = MutableStateFlow(false)
     val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
@@ -93,6 +99,7 @@ class HomeViewModel @Inject constructor(
 
     init {
         loadSettings()
+        startPeriodicSender()
     }
 
     private fun loadSettings() {
@@ -113,6 +120,25 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun startPeriodicSender() {
+        viewModelScope.launch {
+            while (isActive) {
+                try {
+                    val scaledLeftX = mapRange(_leftStickX.value, leftMinX.value, leftMaxX.value)
+                    val scaledLeftY = mapRange(-_leftStickY.value, leftMinY.value, leftMaxY.value)
+                    val scaledRightX = mapRange(_rightStickX.value, rightMinX.value, rightMaxX.value)
+                    val scaledRightY = mapRange(-_rightStickY.value, rightMinY.value, rightMaxY.value)
+                    val command = "$scaledLeftX,$scaledLeftY,$scaledRightX,$scaledRightY\n"
+                    sendCommand(command)
+                    delay(SEND_INTERVAL_MS)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    delay(SEND_INTERVAL_MS)
+                }
+            }
+        }
+    }
+
     fun toggleReady() {
         viewModelScope.launch {
             _isReady.value = !_isReady.value
@@ -124,27 +150,11 @@ class HomeViewModel @Inject constructor(
     fun updateLeftStick(x: Float?, y: Float?) {
         if(x!=null)_leftStickX.value = x
         if(y!=null)_leftStickY.value = y
-        viewModelScope.launch {
-            val scaledLeftX = mapRange(_leftStickX.value, leftMinX.value, leftMaxX.value)
-            val scaledLeftY = mapRange(-_leftStickY.value, leftMinY.value, leftMaxY .value)
-            val scaledRightX = mapRange(_rightStickX.value, rightMinX.value, rightMaxX.value)
-            val scaledRightY = mapRange(_rightStickY.value, rightMinY.value, rightMaxY.value)
-            val command = "$scaledLeftX,$scaledLeftY,$scaledRightX,$scaledRightY\n"
-            sendCommand(command)
-        }
     }
 
     fun updateRightStick(x: Float?, y: Float?) {
         if(x!=null)_rightStickX.value = x
         if(y!=null)_rightStickY.value = y
-        viewModelScope.launch {
-            val scaledLeftX = mapRange(_leftStickX.value, leftMinX.value, leftMaxX.value)
-            val scaledLeftY = mapRange(-_leftStickY.value, leftMinY.value, leftMaxY.value)
-            val scaledRightX = mapRange(_rightStickX.value, rightMinX.value, rightMaxX.value)
-            val scaledRightY = mapRange(_rightStickY.value, rightMinY.value, rightMaxY.value)
-            val command = "$scaledLeftX,$scaledLeftY,$scaledRightX,$scaledRightY\n"
-            sendCommand(command)
-        }
     }
 
     private fun mapRange(value: Float, minValue: Int, maxValue: Int): Int {
