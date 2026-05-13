@@ -33,11 +33,79 @@ class SettingsViewModel @Inject constructor(
         initialValue = "UDP"
     )
 
-    fun saveSettings(ip: String, port: String, mode: String) {
+    val leftMinX: StateFlow<Int> = settingsManager.leftMinXFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = -100
+    )
+
+    val leftMaxX: StateFlow<Int> = settingsManager.leftMaxXFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = 100
+    )
+
+    val leftMinY: StateFlow<Int> = settingsManager.leftMinYFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = -100
+    )
+
+    val leftMaxY: StateFlow<Int> = settingsManager.leftMaxYFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = 100
+    )
+
+    val rightMinX: StateFlow<Int> = settingsManager.rightMinXFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = -100
+    )
+
+    val rightMaxX: StateFlow<Int> = settingsManager.rightMaxXFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = 100
+    )
+
+    val rightMinY: StateFlow<Int> = settingsManager.rightMinYFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = -100
+    )
+
+    val rightMaxY: StateFlow<Int> = settingsManager.rightMaxYFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Lazily,
+        initialValue = 100
+    )
+
+    fun saveSettings(
+        ip: String,
+        port: String,
+        mode: String,
+        leftMinX: Int,
+        leftMaxX: Int,
+        leftMinY: Int,
+        leftMaxY: Int,
+        rightMinX: Int,
+        rightMaxX: Int,
+        rightMinY: Int,
+        rightMaxY: Int
+    ) {
         viewModelScope.launch {
             settingsManager.setUdpIp(ip)
             settingsManager.setUdpPort(port)
             settingsManager.setCommMode(mode)
+            settingsManager.setLeftMinX(leftMinX)
+            settingsManager.setLeftMaxX(leftMaxX)
+            settingsManager.setLeftMinY(leftMinY)
+            settingsManager.setLeftMaxY(leftMaxY)
+            settingsManager.setRightMinX(rightMinX)
+            settingsManager.setRightMaxX(rightMaxX)
+            settingsManager.setRightMinY(rightMinY)
+            settingsManager.setRightMaxY(rightMaxY)
         }
     }
 }

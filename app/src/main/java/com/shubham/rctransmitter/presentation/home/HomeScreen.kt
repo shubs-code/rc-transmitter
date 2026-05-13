@@ -234,23 +234,4 @@ private fun updateJoystick(
     val normalizedY = (dy / maxDistance).coerceIn(-1f, 1f)
 
     onPositionChange(normalizedX, normalizedY)
-
-    val xPercent = (normalizedX * 100).roundToInt()
-
-    if (isLeftThrottle) {
-        val throttlePercent =
-            (((1f - normalizedY) / 2f) * 100f).roundToInt()
-
-        Log.d(
-            "JOYSTICK",
-            "LEFT -> Horizontal=$xPercent%, Vertical=$throttlePercent%"
-        )
-    } else {
-        val yPercent = (-normalizedY * 100).roundToInt()
-
-        Log.d(
-            "JOYSTICK",
-            "RIGHT -> Horizontal=$xPercent%, Vertical=$yPercent%"
-        )
-    }
 }

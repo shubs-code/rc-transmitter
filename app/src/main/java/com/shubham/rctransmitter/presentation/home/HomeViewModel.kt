@@ -37,6 +37,60 @@ class HomeViewModel @Inject constructor(
     private val _rightStickY = MutableStateFlow(0f)
     val rightStickY: StateFlow<Float> = _rightStickY.asStateFlow()
 
+    val commMode: StateFlow<String> = settingsManager.commModeFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = "UDP"
+    )
+
+    private val leftMinX: StateFlow<Int> = settingsManager.leftMinXFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = -100
+    )
+
+    private val leftMaxX: StateFlow<Int> = settingsManager.leftMaxXFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = 100
+    )
+
+    private val leftMinY: StateFlow<Int> = settingsManager.leftMinYFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = -100
+    )
+
+    private val leftMaxY: StateFlow<Int> = settingsManager.leftMaxYFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = 100
+    )
+
+    private val rightMinX: StateFlow<Int> = settingsManager.rightMinXFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = -100
+    )
+
+    private val rightMaxX: StateFlow<Int> = settingsManager.rightMaxXFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = 100
+    )
+
+    private val rightMinY: StateFlow<Int> = settingsManager.rightMinYFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = -100
+    )
+
+    private val rightMaxY: StateFlow<Int> = settingsManager.rightMaxYFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = 100
+    )
+
     init {
         loadSettings()
     }
@@ -63,26 +117,38 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _isReady.value = !_isReady.value
             val command = if (_isReady.value) "START" else "STOP"
-            sendCommand(command)
+//            sendCommand(command)
         }
     }
 
     fun updateLeftStick(x: Float?, y: Float?) {
-        x?.let { _leftStickX.value = it }
-        y?.let { _leftStickY.value = it }
-
+        if(x!=null)_leftStickX.value = x
+        if(y!=null)_leftStickY.value = y
         viewModelScope.launch {
-            sendCommand("LEFT:${_leftStickX.value},${_leftStickY.value}")
+            val scaledLeftX = mapRange(_leftStickX.value, leftMinX.value, leftMaxX.value)
+            val scaledLeftY = mapRange(-_leftStickY.value, leftMinY.value, leftMaxY .value)
+            val scaledRightX = mapRange(_rightStickX.value, rightMinX.value, rightMaxX.value)
+            val scaledRightY = mapRange(_rightStickY.value, rightMinY.value, rightMaxY.value)
+            val command = "$scaledLeftX,$scaledLeftY,$scaledRightX,$scaledRightY\n"
+            sendCommand(command)
         }
     }
 
     fun updateRightStick(x: Float?, y: Float?) {
-        x?.let { _rightStickX.value = it }
-        y?.let { _rightStickY.value = it }
-
+        if(x!=null)_rightStickX.value = x
+        if(y!=null)_rightStickY.value = y
         viewModelScope.launch {
-            sendCommand("RIGHT:$x,$y")
+            val scaledLeftX = mapRange(_leftStickX.value, leftMinX.value, leftMaxX.value)
+            val scaledLeftY = mapRange(-_leftStickY.value, leftMinY.value, leftMaxY.value)
+            val scaledRightX = mapRange(_rightStickX.value, rightMinX.value, rightMaxX.value)
+            val scaledRightY = mapRange(_rightStickY.value, rightMinY.value, rightMaxY.value)
+            val command = "$scaledLeftX,$scaledLeftY,$scaledRightX,$scaledRightY\n"
+            sendCommand(command)
         }
+    }
+
+    private fun mapRange(value: Float, minValue: Int, maxValue: Int): Int {
+        return (value * (maxValue - minValue) / 2 + (minValue + maxValue) / 2).toInt()
     }
 
     private suspend fun sendCommand(command: String) {
@@ -98,5 +164,4 @@ class HomeViewModel @Inject constructor(
         super.onCleared()
         serialPortDataSource.disconnect()
     }
-
 }

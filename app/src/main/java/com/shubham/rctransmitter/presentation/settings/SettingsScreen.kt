@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 
+
 @Composable
 fun SettingsScreen(
     onBackClick: () -> Unit,
@@ -45,14 +46,42 @@ fun SettingsScreen(
     val udpPort by viewModel.udpPort.collectAsState()
     val commMode by viewModel.commMode.collectAsState()
 
+    val leftMinX by viewModel.leftMinX.collectAsState()
+    val leftMaxX by viewModel.leftMaxX.collectAsState()
+    val leftMinY by viewModel.leftMinY.collectAsState()
+    val leftMaxY by viewModel.leftMaxY.collectAsState()
+
+    val rightMinX by viewModel.rightMinX.collectAsState()
+    val rightMaxX by viewModel.rightMaxX.collectAsState()
+    val rightMinY by viewModel.rightMinY.collectAsState()
+    val rightMaxY by viewModel.rightMaxY.collectAsState()
+
     var ipInput by remember { mutableStateOf(udpIp) }
     var portInput by remember { mutableStateOf(udpPort) }
     var modeInput by remember { mutableStateOf(commMode) }
 
-    LaunchedEffect(udpIp, udpPort, commMode) {
+    var leftMinXInput by remember { mutableStateOf(leftMinX.toString()) }
+    var leftMaxXInput by remember { mutableStateOf(leftMaxX.toString()) }
+    var leftMinYInput by remember { mutableStateOf(leftMinY.toString()) }
+    var leftMaxYInput by remember { mutableStateOf(leftMaxY.toString()) }
+
+    var rightMinXInput by remember { mutableStateOf(rightMinX.toString()) }
+    var rightMaxXInput by remember { mutableStateOf(rightMaxX.toString()) }
+    var rightMinYInput by remember { mutableStateOf(rightMinY.toString()) }
+    var rightMaxYInput by remember { mutableStateOf(rightMaxY.toString()) }
+
+    LaunchedEffect(udpIp, udpPort, commMode, leftMinX, leftMaxX, leftMinY, leftMaxY, rightMinX, rightMaxX, rightMinY, rightMaxY) {
         ipInput = udpIp
         portInput = udpPort
         modeInput = commMode
+        leftMinXInput = leftMinX.toString()
+        leftMaxXInput = leftMaxX.toString()
+        leftMinYInput = leftMinY.toString()
+        leftMaxYInput = leftMaxY.toString()
+        rightMinXInput = rightMinX.toString()
+        rightMaxXInput = rightMaxX.toString()
+        rightMinYInput = rightMinY.toString()
+        rightMaxYInput = rightMaxY.toString()
     }
 
     Box(
@@ -77,16 +106,17 @@ fun SettingsScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.size(16.dp))
 
             Text(
                 text = "Settings",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
-                modifier = Modifier.padding(bottom = 32.dp)
+                modifier = Modifier.padding(bottom = 24.dp)
             )
 
+            // Communication Mode
             Text(
                 text = "Communication Mode",
                 fontSize = 16.sp,
@@ -150,16 +180,14 @@ fun SettingsScreen(
                         unfocusedBorderColor = Color.Gray,
                         focusedContainerColor = Color(0xFF2D3142),
                         unfocusedContainerColor = Color(0xFF2D3142),
-                        cursorColor = Color.White,
-                        focusedLabelColor = Color(0xFF4CAF50),
-                        unfocusedLabelColor = Color.LightGray
+                        cursorColor = Color.White
                     ),
                     placeholder = {
                         Text("192.168.1.100", color = Color.Gray)
                     }
                 )
 
-                Spacer(modifier = Modifier.size(24.dp))
+                Spacer(modifier = Modifier.size(16.dp))
 
                 Text(
                     text = "UDP Port",
@@ -181,9 +209,7 @@ fun SettingsScreen(
                         unfocusedBorderColor = Color.Gray,
                         focusedContainerColor = Color(0xFF2D3142),
                         unfocusedContainerColor = Color(0xFF2D3142),
-                        cursorColor = Color.White,
-                        focusedLabelColor = Color(0xFF4CAF50),
-                        unfocusedLabelColor = Color.LightGray
+                        cursorColor = Color.White
                     ),
                     placeholder = {
                         Text("5000", color = Color.Gray)
@@ -196,19 +222,207 @@ fun SettingsScreen(
                     color = Color(0xFFBBBBBB),
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
-                Text(
-                    text = "Connect USB device and tap Save\nBaud rate: 115200",
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+            }
+
+            Spacer(modifier = Modifier.size(24.dp))
+
+            // Left Joystick Calibration
+            Text(
+                text = "Left Joystick Range",
+                fontSize = 16.sp,
+                color = Color(0xFF4CAF50),
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Min X", fontSize = 12.sp, color = Color.Gray)
+                    OutlinedTextField(
+                        value = leftMinXInput,
+                        onValueChange = { leftMinXInput = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color(0xFF4CAF50),
+                            unfocusedBorderColor = Color.Gray,
+                            focusedContainerColor = Color(0xFF2D3142),
+                            unfocusedContainerColor = Color(0xFF2D3142),
+                            cursorColor = Color.White
+                        )
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Max X", fontSize = 12.sp, color = Color.Gray)
+                    OutlinedTextField(
+                        value = leftMaxXInput,
+                        onValueChange = { leftMaxXInput = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color(0xFF4CAF50),
+                            unfocusedBorderColor = Color.Gray,
+                            focusedContainerColor = Color(0xFF2D3142),
+                            unfocusedContainerColor = Color(0xFF2D3142),
+                            cursorColor = Color.White
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.size(8.dp))
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Min Y", fontSize = 12.sp, color = Color.Gray)
+                    OutlinedTextField(
+                        value = leftMinYInput,
+                        onValueChange = { leftMinYInput = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color(0xFF4CAF50),
+                            unfocusedBorderColor = Color.Gray,
+                            focusedContainerColor = Color(0xFF2D3142),
+                            unfocusedContainerColor = Color(0xFF2D3142),
+                            cursorColor = Color.White
+                        )
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Max Y", fontSize = 12.sp, color = Color.Gray)
+                    OutlinedTextField(
+                        value = leftMaxYInput,
+                        onValueChange = { leftMaxYInput = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color(0xFF4CAF50),
+                            unfocusedBorderColor = Color.Gray,
+                            focusedContainerColor = Color(0xFF2D3142),
+                            unfocusedContainerColor = Color(0xFF2D3142),
+                            cursorColor = Color.White
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.size(24.dp))
+
+            // Right Joystick Calibration
+            Text(
+                text = "Right Joystick Range",
+                fontSize = 16.sp,
+                color = Color(0xFF4CAF50),
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Min X", fontSize = 12.sp, color = Color.Gray)
+                    OutlinedTextField(
+                        value = rightMinXInput,
+                        onValueChange = { rightMinXInput = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color(0xFF4CAF50),
+                            unfocusedBorderColor = Color.Gray,
+                            focusedContainerColor = Color(0xFF2D3142),
+                            unfocusedContainerColor = Color(0xFF2D3142),
+                            cursorColor = Color.White
+                        )
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Max X", fontSize = 12.sp, color = Color.Gray)
+                    OutlinedTextField(
+                        value = rightMaxXInput,
+                        onValueChange = { rightMaxXInput = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color(0xFF4CAF50),
+                            unfocusedBorderColor = Color.Gray,
+                            focusedContainerColor = Color(0xFF2D3142),
+                            unfocusedContainerColor = Color(0xFF2D3142),
+                            cursorColor = Color.White
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.size(8.dp))
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Min Y", fontSize = 12.sp, color = Color.Gray)
+                    OutlinedTextField(
+                        value = rightMinYInput,
+                        onValueChange = { rightMinYInput = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color(0xFF4CAF50),
+                            unfocusedBorderColor = Color.Gray,
+                            focusedContainerColor = Color(0xFF2D3142),
+                            unfocusedContainerColor = Color(0xFF2D3142),
+                            cursorColor = Color.White
+                        )
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Max Y", fontSize = 12.sp, color = Color.Gray)
+                    OutlinedTextField(
+                        value = rightMaxYInput,
+                        onValueChange = { rightMaxYInput = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = Color(0xFF4CAF50),
+                            unfocusedBorderColor = Color.Gray,
+                            focusedContainerColor = Color(0xFF2D3142),
+                            unfocusedContainerColor = Color(0xFF2D3142),
+                            cursorColor = Color.White
+                        )
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
                 onClick = {
-                    viewModel.saveSettings(ipInput, portInput, modeInput)
+                    viewModel.saveSettings(
+                        ipInput,
+                        portInput,
+                        modeInput,
+                        leftMinXInput.toIntOrNull() ?: -100,
+                        leftMaxXInput.toIntOrNull() ?: 100,
+                        leftMinYInput.toIntOrNull() ?: -100,
+                        leftMaxYInput.toIntOrNull() ?: 100,
+                        rightMinXInput.toIntOrNull() ?: -100,
+                        rightMaxXInput.toIntOrNull() ?: 100,
+                        rightMinYInput.toIntOrNull() ?: -100,
+                        rightMaxYInput.toIntOrNull() ?: 100
+                    )
                     onBackClick()
                 },
                 modifier = Modifier
