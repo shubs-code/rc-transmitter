@@ -25,7 +25,7 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     companion object {
-        private const val SEND_INTERVAL_MS = 100L
+        private const val SEND_INTERVAL_MS = 20L
     }
 
     private val _isReady = MutableStateFlow(false)

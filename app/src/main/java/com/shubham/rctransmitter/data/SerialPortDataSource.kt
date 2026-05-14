@@ -10,6 +10,7 @@ import android.hardware.usb.UsbManager
 import android.util.Log
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
+import com.shubham.rctransmitter.receivers.UsbPermissionReceiver
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -136,12 +137,15 @@ class SerialPortDataSource @Inject constructor(
         try {
             val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
 
-            val intent = Intent(ACTION_USB_PERMISSION)
+            val intent = Intent(context, UsbPermissionReceiver::class.java).apply {
+                action = ACTION_USB_PERMISSION
+            }
+
             val pendingIntent = PendingIntent.getBroadcast(
                 context,
                 0,
                 intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
             )
 
             Log.d(TAG, "Requesting permission for: ${device.deviceName}")
@@ -204,9 +208,8 @@ class SerialPortDataSource @Inject constructor(
                 if (isConnected && serialPort != null) {
                     val bytes = (data + "\n").toByteArray()
                     serialPort?.write(bytes, 1000)
-                    Log.d(TAG, "📤 Sent: $data")
                 } else {
-                    Log.e(TAG, "Serial port not connected")
+                    connectToUSB()
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Write error: ${e.message}", e)
