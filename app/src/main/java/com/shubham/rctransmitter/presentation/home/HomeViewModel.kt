@@ -25,7 +25,7 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     companion object {
-        private const val SEND_INTERVAL_MS = 20L
+        private const val SEND_INTERVAL_MS = 50L
     }
 
     private val _isReady = MutableStateFlow(false)
@@ -42,6 +42,11 @@ class HomeViewModel @Inject constructor(
 
     private val _rightStickY = MutableStateFlow(0f)
     val rightStickY: StateFlow<Float> = _rightStickY.asStateFlow()
+
+    private val _telemetryLines = MutableStateFlow<List<String>>(emptyList())
+    val telemetryLines: StateFlow<List<String>> = _telemetryLines.asStateFlow()
+
+
 
     val commMode: StateFlow<String> = settingsManager.commModeFlow.stateIn(
         scope = viewModelScope,
@@ -100,6 +105,7 @@ class HomeViewModel @Inject constructor(
     init {
         loadSettings()
         startPeriodicSender()
+        startTelemetryListener()
     }
 
     private fun loadSettings() {
@@ -174,4 +180,23 @@ class HomeViewModel @Inject constructor(
         super.onCleared()
         serialPortDataSource.disconnect()
     }
+    private fun startTelemetryListener() {
+        viewModelScope.launch {
+            serialPortDataSource.serialDataFlow.collect { receivedData ->
+                val dataString = receivedData.decodeToString().trim()
+                if (dataString.isNotEmpty()) {
+                    val currentLines = _telemetryLines.value.toMutableList()
+                    currentLines.add(dataString)
+
+                    // Keep only last 3 lines
+                    if (currentLines.size > 3) {
+                        currentLines.removeAt(0)
+                    }
+
+                    _telemetryLines.value = currentLines
+                }
+            }
+        }
+    }
+
 }

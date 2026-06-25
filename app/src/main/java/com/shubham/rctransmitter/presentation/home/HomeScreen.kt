@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import kotlin.math.roundToInt
+
 
 @Composable
 fun HomeScreen(
@@ -38,6 +38,7 @@ fun HomeScreen(
 
     val rightStickX by viewModel.rightStickX.collectAsState()
     val rightStickY by viewModel.rightStickY.collectAsState()
+    val telemetryLines by viewModel.telemetryLines.collectAsState()
 
     Box(
         modifier = Modifier
@@ -112,6 +113,37 @@ fun HomeScreen(
                     viewModel.updateRightStick(x, y)
                 }
             )
+        }
+
+        // Telemetry Display
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(60.dp)
+                .padding(start = 32.dp,
+                    end = 76.dp,
+                    top = 8.dp,
+                    bottom = 8.dp)
+                .background(Color(0xFF0f1419), shape = RoundedCornerShape(8.dp))
+                .border(1.dp, Color(0xFF4CAF50), RoundedCornerShape(8.dp))
+                .padding(8.dp)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                telemetryLines.lastOrNull()?.let { line ->
+                    Text(
+                        text = line,
+                        fontSize = 11.sp,
+                        color = Color(0xFF4CAF50),
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1
+                    )
+
+                }
+            }
         }
     }
 }

@@ -16,6 +16,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,6 +38,9 @@ class SerialPortDataSource @Inject constructor(
     private var usbPermissionReceiver: BroadcastReceiver? = null
     private var isConnected = false
     private var pendingDevice: UsbDevice? = null
+
+    private val _serialDataFlow = MutableSharedFlow<ByteArray>(replay = 0)
+    val serialDataFlow: SharedFlow<ByteArray> = _serialDataFlow.asSharedFlow()
 
     init {
         registerUsbPermissionReceiver()
@@ -196,11 +202,33 @@ class SerialPortDataSource @Inject constructor(
             pendingDevice = null
 
             Log.d(TAG, "✅✅✅ SUCCESSFULLY CONNECTED TO USB DEVICE ✅✅✅")
-
+            startReading()
         } catch (e: Exception) {
             Log.e(TAG, "Connection error: ${e.message}", e)
         }
     }
+
+    private fun startReading() {
+        scope.launch {
+            val buffer = ByteArray(4096)
+
+            while (isConnected && serialPort != null) {
+                try {
+                    val count = serialPort?.read(buffer, 1000) ?: 0
+                    if (count > 0) {
+                        val data = buffer.copyOfRange(0, count)
+                        Log.d(TAG, "📥 Received ${count} bytes")
+                        _serialDataFlow.emit(data)
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Read error: ${e.message}", e)
+                    break
+                }
+            }
+        }
+    }
+
+
 
     fun sendData(data: String) {
         scope.launch {
