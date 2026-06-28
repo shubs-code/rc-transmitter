@@ -81,6 +81,34 @@ class SettingsViewModel @Inject constructor(
         initialValue = 100
     )
 
+    val leftXSnapBack: StateFlow<Boolean> = settingsManager.leftXSnapBackFlow.stateIn(
+        scope = viewModelScope, started = SharingStarted.Lazily, initialValue = true // default snap
+    )
+    val leftXSnapPercent: StateFlow<Int> = settingsManager.leftXSnapPercentFlow.stateIn(
+        scope = viewModelScope, started = SharingStarted.Lazily, initialValue = 50 // default center
+    )
+
+    val leftYSnapBack: StateFlow<Boolean> = settingsManager.leftYSnapBackFlow.stateIn(
+        scope = viewModelScope, started = SharingStarted.Lazily, initialValue = false // default throttle (sticky)
+    )
+    val leftYSnapPercent: StateFlow<Int> = settingsManager.leftYSnapPercentFlow.stateIn(
+        scope = viewModelScope, started = SharingStarted.Lazily, initialValue = 100 // default bottom/top depending on setup
+    )
+
+    val rightXSnapBack: StateFlow<Boolean> = settingsManager.rightXSnapBackFlow.stateIn(
+        scope = viewModelScope, started = SharingStarted.Lazily, initialValue = true // default snap
+    )
+    val rightXSnapPercent: StateFlow<Int> = settingsManager.rightXSnapPercentFlow.stateIn(
+        scope = viewModelScope, started = SharingStarted.Lazily, initialValue = 50 // default center
+    )
+
+    val rightYSnapBack: StateFlow<Boolean> = settingsManager.rightYSnapBackFlow.stateIn(
+        scope = viewModelScope, started = SharingStarted.Lazily, initialValue = false // default throttle (sticky)
+    )
+    val rightYSnapPercent: StateFlow<Int> = settingsManager.rightYSnapPercentFlow.stateIn(
+        scope = viewModelScope, started = SharingStarted.Lazily, initialValue = 100 // default bottom/top depending on setup
+    )
+
     fun saveSettings(
         ip: String,
         port: String,
@@ -92,7 +120,11 @@ class SettingsViewModel @Inject constructor(
         rightMinX: Int,
         rightMaxX: Int,
         rightMinY: Int,
-        rightMaxY: Int
+        rightMaxY: Int,
+        leftXSnapBack: Boolean, leftXSnapPercent: Int,
+        leftYSnapBack: Boolean, leftYSnapPercent: Int,
+        rightXSnapBack: Boolean, rightXSnapPercent: Int,
+        rightYSnapBack: Boolean, rightYSnapPercent: Int
     ) {
         viewModelScope.launch {
             settingsManager.setUdpIp(ip)
@@ -106,6 +138,14 @@ class SettingsViewModel @Inject constructor(
             settingsManager.setRightMaxX(rightMaxX)
             settingsManager.setRightMinY(rightMinY)
             settingsManager.setRightMaxY(rightMaxY)
+            settingsManager.setLeftXSnapBack(leftXSnapBack)
+            settingsManager.setLeftXSnapPercent(leftXSnapPercent)
+            settingsManager.setLeftYSnapBack(leftYSnapBack)
+            settingsManager.setLeftYSnapPercent(leftYSnapPercent)
+            settingsManager.setRightXSnapBack(rightXSnapBack)
+            settingsManager.setRightXSnapPercent(rightXSnapPercent)
+            settingsManager.setRightYSnapBack(rightYSnapBack)
+            settingsManager.setRightYSnapPercent(rightYSnapPercent)
         }
     }
 }

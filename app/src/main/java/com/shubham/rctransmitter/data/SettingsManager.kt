@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.datastore.preferences.core.booleanPreferencesKey
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "rc_settings")
 
@@ -40,6 +41,19 @@ class SettingsManager @Inject constructor(
         private const val DEFAULT_MODE = "UDP"
         private const val DEFAULT_MIN = -100
         private const val DEFAULT_MAX = 100
+
+        private val LEFT_X_SNAP_BACK_KEY = booleanPreferencesKey("left_x_snap_back")
+        private val LEFT_X_SNAP_PERCENT_KEY = intPreferencesKey("left_x_snap_percent")
+        private val LEFT_Y_SNAP_BACK_KEY = booleanPreferencesKey("left_y_snap_back")
+        private val LEFT_Y_SNAP_PERCENT_KEY = intPreferencesKey("left_y_snap_percent")
+
+        private val RIGHT_X_SNAP_BACK_KEY = booleanPreferencesKey("right_x_snap_back")
+        private val RIGHT_X_SNAP_PERCENT_KEY = intPreferencesKey("right_x_snap_percent")
+        private val RIGHT_Y_SNAP_BACK_KEY = booleanPreferencesKey("right_y_snap_back")
+        private val RIGHT_Y_SNAP_PERCENT_KEY = intPreferencesKey("right_y_snap_percent")
+
+        private const val DEFAULT_SNAP_CENTER = 50
+        private const val DEFAULT_SNAP_THROTTLE = 0 // 100% means fully up, or change to 0% for down depending on setup
     }
 
     val udpIpFlow: Flow<String> = context.dataStore.data.map { preferences ->
@@ -84,6 +98,38 @@ class SettingsManager @Inject constructor(
 
     val rightMaxYFlow: Flow<Int> = context.dataStore.data.map { preferences ->
         preferences[RIGHT_MAX_Y_KEY] ?: DEFAULT_MAX
+    }
+
+    // Left Stick X Axis Configuration Flows
+    val leftXSnapBackFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[LEFT_X_SNAP_BACK_KEY] ?: true // Snaps back by default
+    }
+    val leftXSnapPercentFlow: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[LEFT_X_SNAP_PERCENT_KEY] ?: DEFAULT_SNAP_CENTER
+    }
+
+    // Left Stick Y Axis Configuration Flows
+    val leftYSnapBackFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[LEFT_Y_SNAP_BACK_KEY] ?: false // Sticky by default (Common for Throttle)
+    }
+    val leftYSnapPercentFlow: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[LEFT_Y_SNAP_PERCENT_KEY] ?: DEFAULT_SNAP_THROTTLE
+    }
+
+    // Right Stick X Axis Configuration Flows
+    val rightXSnapBackFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[RIGHT_X_SNAP_BACK_KEY] ?: true // Snaps back by default
+    }
+    val rightXSnapPercentFlow: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[RIGHT_X_SNAP_PERCENT_KEY] ?: DEFAULT_SNAP_CENTER
+    }
+
+    // Right Stick Y Axis Configuration Flows
+    val rightYSnapBackFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[RIGHT_Y_SNAP_BACK_KEY] ?: true // Snaps back by default
+    }
+    val rightYSnapPercentFlow: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[RIGHT_Y_SNAP_PERCENT_KEY] ?: DEFAULT_SNAP_CENTER
     }
 
     suspend fun setUdpIp(ip: String) {
@@ -168,5 +214,33 @@ class SettingsManager @Inject constructor(
         return context.dataStore.data.map { preferences ->
             preferences[COMM_MODE_KEY] ?: DEFAULT_MODE
         }.first()
+    }
+
+    suspend fun setLeftXSnapBack(value: Boolean) {
+        context.dataStore.edit { preferences -> preferences[LEFT_X_SNAP_BACK_KEY] = value }
+    }
+    suspend fun setLeftXSnapPercent(value: Int) {
+        context.dataStore.edit { preferences -> preferences[LEFT_X_SNAP_PERCENT_KEY] = value }
+    }
+
+    suspend fun setLeftYSnapBack(value: Boolean) {
+        context.dataStore.edit { preferences -> preferences[LEFT_Y_SNAP_BACK_KEY] = value }
+    }
+    suspend fun setLeftYSnapPercent(value: Int) {
+        context.dataStore.edit { preferences -> preferences[LEFT_Y_SNAP_PERCENT_KEY] = value }
+    }
+
+    suspend fun setRightXSnapBack(value: Boolean) {
+        context.dataStore.edit { preferences -> preferences[RIGHT_X_SNAP_BACK_KEY] = value }
+    }
+    suspend fun setRightXSnapPercent(value: Int) {
+        context.dataStore.edit { preferences -> preferences[RIGHT_X_SNAP_PERCENT_KEY] = value }
+    }
+
+    suspend fun setRightYSnapBack(value: Boolean) {
+        context.dataStore.edit { preferences -> preferences[RIGHT_Y_SNAP_BACK_KEY] = value }
+    }
+    suspend fun setRightYSnapPercent(value: Int) {
+        context.dataStore.edit { preferences -> preferences[RIGHT_Y_SNAP_PERCENT_KEY] = value }
     }
 }

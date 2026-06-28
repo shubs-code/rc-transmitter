@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -102,10 +103,32 @@ class HomeViewModel @Inject constructor(
         initialValue = 100
     )
 
+    private val leftXSnapBack = settingsManager.leftXSnapBackFlow.stateIn(viewModelScope, SharingStarted.Eagerly, true)
+    private val leftXSnapPercent = settingsManager.leftXSnapPercentFlow.stateIn(viewModelScope, SharingStarted.Eagerly, 50)
+
+    private val leftYSnapBack = settingsManager.leftYSnapBackFlow.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    private val leftYSnapPercent = settingsManager.leftYSnapPercentFlow.stateIn(viewModelScope, SharingStarted.Eagerly, 100)
+
+    private val rightXSnapBack = settingsManager.rightXSnapBackFlow.stateIn(viewModelScope, SharingStarted.Eagerly, true)
+    private val rightXSnapPercent = settingsManager.rightXSnapPercentFlow.stateIn(viewModelScope, SharingStarted.Eagerly, 50)
+
+    private val rightYSnapBack = settingsManager.rightYSnapBackFlow.stateIn(viewModelScope, SharingStarted.Eagerly, true)
+    private val rightYSnapPercent = settingsManager.rightYSnapPercentFlow.stateIn(viewModelScope, SharingStarted.Eagerly, 50)
+
     init {
         loadSettings()
         startPeriodicSender()
         startTelemetryListener()
+        viewModelScope.launch {
+            combine(
+                leftXSnapBack, leftXSnapPercent, leftYSnapBack, leftYSnapPercent,
+                rightXSnapBack, rightXSnapPercent, rightYSnapBack, rightYSnapPercent
+            ) { _ ->
+                // This block runs whenever any of the 8 properties change
+                releaseLeftStick()
+                releaseRightStick()
+            }.collect()
+        }
     }
 
     private fun loadSettings() {
@@ -198,5 +221,25 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+    fun releaseLeftStick() {
+        if (leftXSnapBack.value) {
+            _leftStickX.value = percentToFloat(leftXSnapPercent.value)
+        }
+        if (leftYSnapBack.value) {
+            _leftStickY.value = percentToFloat(leftYSnapPercent.value)
+        }
+    }
 
+    fun releaseRightStick() {
+        if (rightXSnapBack.value) {
+            _rightStickX.value = percentToFloat(rightXSnapPercent.value)
+        }
+        if (rightYSnapBack.value) {
+            _rightStickY.value = percentToFloat(rightYSnapPercent.value)
+        }
+    }
+
+    private fun percentToFloat(percent: Int): Float {
+        return (percent / 50f) - 1f
+    }
 }

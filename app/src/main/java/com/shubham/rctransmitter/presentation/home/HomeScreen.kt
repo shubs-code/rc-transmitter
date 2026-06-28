@@ -59,10 +59,8 @@ fun HomeScreen(
                 modifier = Modifier.weight(1f),
                 stickX = leftStickX,
                 stickY = leftStickY,
-                isLeftThrottle = true,
-                onPositionChange = { x, y ->
-                    viewModel.updateLeftStick(x, y)
-                }
+                onPositionChange = { x, y -> viewModel.updateLeftStick(x, y) },
+                onRelease = { viewModel.releaseLeftStick() } // Handled dynamically by VM
             )
 
             Column(
@@ -72,24 +70,24 @@ fun HomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                Box(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            if (isReady) Color(0xFFF44336)
-                            else Color(0xFF4CAF50)
-                        )
-                        .clickable { viewModel.toggleReady() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = if (isReady) "STOP" else "READY",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                }
+//                Box(
+//                    modifier = Modifier
+//                        .size(60.dp)
+//                        .clip(RoundedCornerShape(12.dp))
+//                        .background(
+//                            if (isReady) Color(0xFFF44336)
+//                            else Color(0xFF4CAF50)
+//                        )
+//                        .clickable { viewModel.toggleReady() },
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    Text(
+//                        text = if (isReady) "STOP" else "READY",
+//                        fontSize = 12.sp,
+//                        fontWeight = FontWeight.Bold,
+//                        color = Color.Black
+//                    )
+//                }
 
                 IconButton(onClick = onSettingsClick) {
                     Icon(
@@ -108,10 +106,8 @@ fun HomeScreen(
                 modifier = Modifier.weight(1f),
                 stickX = rightStickX,
                 stickY = rightStickY,
-                isLeftThrottle = false,
-                onPositionChange = { x, y ->
-                    viewModel.updateRightStick(x, y)
-                }
+                onPositionChange = { x, y -> viewModel.updateRightStick(x, y) },
+                onRelease = { viewModel.releaseRightStick() } // Handled dynamically by VM
             )
         }
 
@@ -146,6 +142,8 @@ fun HomeScreen(
             }
         }
     }
+
+
 }
 
 @Composable
@@ -153,8 +151,8 @@ fun RotaryControl(
     modifier: Modifier = Modifier,
     stickX: Float = 0f,
     stickY: Float = 0f,
-    isLeftThrottle: Boolean = false,
-    onPositionChange: (Float?, Float?) -> Unit
+    onPositionChange: (Float, Float) -> Unit, // Simplified types to non-null
+    onRelease: () -> Unit
 ) {
     val controlSize = 200.dp
     val knobSize = 50.dp
@@ -169,41 +167,18 @@ fun RotaryControl(
             .pointerInput(Unit) {
                 detectDragGestures(
                     onDragStart = { offset ->
-                        updateJoystick(
-                            touch = offset,
-                            size = size,
-                            isLeftThrottle = isLeftThrottle,
-                            onPositionChange = onPositionChange
-                        )
+                        updateJoystick(offset, size, onPositionChange)
                     },
                     onDrag = { change, _ ->
                         change.consume()
-                        updateJoystick(
-                            touch = change.position,
-                            size = size,
-                            isLeftThrottle = isLeftThrottle,
-                            onPositionChange = onPositionChange
-                        )
+                        updateJoystick(change.position, size, onPositionChange)
                     },
-                    onDragEnd = {
-                        if (isLeftThrottle) {
-                            onPositionChange(0f, null)
-                        } else {
-                            onPositionChange(0f, 0f)
-                        }
-                    },
-                    onDragCancel = {
-                        if (isLeftThrottle) {
-                            onPositionChange(0f, null)
-                        } else {
-                            onPositionChange(0f, 0f)
-                        }
-                    }
+                    onDragEnd = { onRelease() },      // Clear & decoupled
+                    onDragCancel = { onRelease() }   // Clear & decoupled
                 )
             },
         contentAlignment = Alignment.Center
     ) {
-
         // OUTER BORDER (Square)
         Box(
             modifier = Modifier
@@ -246,24 +221,19 @@ fun RotaryControl(
 private fun updateJoystick(
     touch: Offset,
     size: IntSize,
-    isLeftThrottle: Boolean,
     onPositionChange: (Float, Float) -> Unit
 ) {
     val minSize = minOf(size.width, size.height).toFloat()
     val maxDistance = minSize / 2.5f
-
     val centerX = size.width / 2f
     val centerY = size.height / 2f
 
-    var dx = touch.x - centerX
-    var dy = touch.y - centerY
-
-    // SQUARE RANGE (instead of circular)
-    dx = dx.coerceIn(-maxDistance, maxDistance)
-    dy = dy.coerceIn(-maxDistance, maxDistance)
+    val dx = (touch.x - centerX).coerceIn(-maxDistance, maxDistance)
+    val dy = (touch.y - centerY).coerceIn(-maxDistance, maxDistance)
 
     val normalizedX = (dx / maxDistance).coerceIn(-1f, 1f)
     val normalizedY = (dy / maxDistance).coerceIn(-1f, 1f)
-
     onPositionChange(normalizedX, normalizedY)
 }
+
+
