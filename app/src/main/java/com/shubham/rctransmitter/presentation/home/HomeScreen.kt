@@ -24,6 +24,9 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 
 
 @Composable
@@ -54,14 +57,27 @@ fun HomeScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // LEFT JOYSTICK
-            RotaryControl(
+            Box(
                 modifier = Modifier.weight(1f),
-                stickX = leftStickX,
-                stickY = leftStickY,
-                onPositionChange = { x, y -> viewModel.updateLeftStick(x, y) },
-                onRelease = { viewModel.releaseLeftStick() } // Handled dynamically by VM
-            )
+                contentAlignment = Alignment.Center
+            ) {
+                RotaryControl(
+                    modifier = Modifier.fillMaxSize(),
+                    stickX = leftStickX,
+                    stickY = leftStickY,
+                    onPositionChange = { x, y -> viewModel.updateLeftStick(x, y) },
+                    onRelease = { viewModel.releaseLeftStick() }
+                )
+                Text(
+                    text = "Bat: 12.12v",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 4.dp) // optional fine‑tuning
+                )
+            }
 
             Column(
                 modifier = Modifier
@@ -69,26 +85,6 @@ fun HomeScreen(
                     .padding(horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-//                Box(
-//                    modifier = Modifier
-//                        .size(60.dp)
-//                        .clip(RoundedCornerShape(12.dp))
-//                        .background(
-//                            if (isReady) Color(0xFFF44336)
-//                            else Color(0xFF4CAF50)
-//                        )
-//                        .clickable { viewModel.toggleReady() },
-//                    contentAlignment = Alignment.Center
-//                ) {
-//                    Text(
-//                        text = if (isReady) "STOP" else "READY",
-//                        fontSize = 12.sp,
-//                        fontWeight = FontWeight.Bold,
-//                        color = Color.Black
-//                    )
-//                }
-
                 IconButton(onClick = onSettingsClick) {
                     Icon(
                         Icons.Outlined.Settings,
@@ -98,49 +94,98 @@ fun HomeScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
-            }
 
-            // RIGHT JOYSTICK
-            RotaryControl(
-                modifier = Modifier.weight(1f),
-                stickX = rightStickX,
-                stickY = rightStickY,
-                onPositionChange = { x, y -> viewModel.updateRightStick(x, y) },
-                onRelease = { viewModel.releaseRightStick() } // Handled dynamically by VM
-            )
-        }
-
-        // Telemetry Display
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(60.dp)
-                .padding(start = 32.dp,
-                    end = 76.dp,
-                    top = 8.dp,
-                    bottom = 8.dp)
-                .background(Color(0xFF0f1419), shape = RoundedCornerShape(8.dp))
-                .border(1.dp, Color(0xFF4CAF50), RoundedCornerShape(8.dp))
-                .padding(8.dp)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                telemetryLines.lastOrNull()?.let { line ->
-                    Text(
-                        text = line,
-                        fontSize = 11.sp,
-                        color = Color(0xFF4CAF50),
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1
-                    )
-
+                // Four buttons below, evenly spaced
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.SpaceEvenly,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Replace these with your actual button composables and actions
+                    Button(
+                        onClick = { /* TODO: action 1 */ },
+                        modifier = Modifier.fillMaxWidth(0.35f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3a3f5e))
+                    ) {
+                        Text("A", color = Color.White)
+                    }
+                    Button(
+                        onClick = { /* TODO: action 2 */ },
+                        modifier = Modifier.fillMaxWidth(0.35f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3a3f5e))
+                    ) {
+                        Text("B", color = Color.White)
+                    }
+                    Button(
+                        onClick = { /* TODO: action 3 */ },
+                        modifier = Modifier.fillMaxWidth(0.35f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3a3f5e))
+                    ) {
+                        Text("C", color = Color.White)
+                    }
+                    Button(
+                        onClick = { /* TODO: action 4 */ },
+                        modifier = Modifier.fillMaxWidth(0.35f),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3a3f5e))
+                    ) {
+                        Text("D", color = Color.White)
+                    }
                 }
             }
+
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                RotaryControl(
+                    modifier = Modifier.fillMaxSize(),
+                    stickX = rightStickX,
+                    stickY = rightStickY,
+                    onPositionChange = { x, y -> viewModel.updateRightStick(x, y) },
+                    onRelease = { viewModel.releaseRightStick() }
+                )
+                Text(
+                    text = "Mode: Launch",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 4.dp)
+                )
+            }
         }
+
+//        // Telemetry Display
+//        Box(
+//            modifier = Modifier
+//                .align(Alignment.BottomCenter)
+//                .fillMaxWidth()
+//                .height(60.dp)
+//                .padding(start = 32.dp,
+//                    end = 76.dp,
+//                    top = 8.dp,
+//                    bottom = 8.dp)
+//                .background(Color(0xFF0f1419), shape = RoundedCornerShape(8.dp))
+//                .border(1.dp, Color(0xFF4CAF50), RoundedCornerShape(8.dp))
+//                .padding(8.dp)
+//        ) {
+//            Column(
+//                modifier = Modifier.fillMaxWidth(),
+//                verticalArrangement = Arrangement.spacedBy(2.dp)
+//            ) {
+//                telemetryLines.lastOrNull()?.let { line ->
+//                    Text(
+//                        text = line,
+//                        fontSize = 11.sp,
+//                        color = Color(0xFF4CAF50),
+//                        fontWeight = FontWeight.SemiBold,
+//                        maxLines = 1
+//                    )
+//
+//                }
+//            }
+//        }
     }
 
 
